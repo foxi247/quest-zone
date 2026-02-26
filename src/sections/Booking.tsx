@@ -1,25 +1,19 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Calendar, Clock, Users, Phone, MessageCircle, Check, ChevronDown } from 'lucide-react';
-
-const quests = [
-  { id: 1, name: 'Пятница 13 — логово маньяка', price: 4000 },
-  { id: 2, name: 'Корпус "С" — психиатрическая больница', price: 4000 },
-  { id: 3, name: 'Паразиты — квартира 666', price: 4000 },
-  { id: 4, name: 'Пятница 13 — Ночная игра', price: 5000 },
-  { id: 5, name: 'Корпус "С" — Ночная игра', price: 5000 },
-  { id: 6, name: 'Паразиты — Ночная игра', price: 5000 },
-];
-
-const timeSlots = [
-  '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00', '22:30'
-];
-
-const playerCounts = ['2', '3', '4', '5', '6'];
+import { useContent } from '@/content/ContentProvider';
 
 export function Booking() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const bookingQuests = content.quests
+    .filter((quest) => quest.category === 'regular' || quest.category === 'night')
+    .map((quest) => ({
+      id: quest.id,
+      name: `${quest.title} — ${quest.subtitle}`,
+      price: quest.price,
+    }));
   
   const [formData, setFormData] = useState({
     quest: '',
@@ -110,7 +104,7 @@ export function Booking() {
                       required
                     >
                       <option value="">Выберите квест...</option>
-                      {quests.map((quest) => (
+                      {bookingQuests.map((quest) => (
                         <option key={quest.id} value={quest.id}>
                           {quest.name} — {quest.price.toLocaleString()} ₽
                         </option>
@@ -148,7 +142,7 @@ export function Booking() {
                         required
                       >
                         <option value="">Выберите время...</option>
-                        {timeSlots.map((time) => (
+                        {content.booking.timeSlots.map((time) => (
                           <option key={time} value={time}>{time}</option>
                         ))}
                       </select>
@@ -172,7 +166,7 @@ export function Booking() {
                         required
                       >
                         <option value="">Выберите...</option>
-                        {playerCounts.map((count) => (
+                        {content.booking.playerCounts.map((count) => (
                           <option key={count} value={count}>{count} чел</option>
                         ))}
                       </select>
@@ -210,7 +204,7 @@ export function Booking() {
                   <p className="text-sm text-gray-500 mb-3">Или свяжитесь с нами напрямую</p>
                   <div className="flex items-center justify-center gap-4">
                     <motion.a
-                      href="https://wa.me/79898801694"
+                      href={`https://wa.me/${content.siteSettings.whatsappNumber}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
@@ -221,7 +215,7 @@ export function Booking() {
                       WhatsApp
                     </motion.a>
                     <motion.a
-                      href="tel:+79898801694"
+                      href={`tel:${content.siteSettings.phone}`}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -245,32 +239,7 @@ export function Booking() {
         >
           <h3 className="text-2xl font-bold text-center mb-8">Частые вопросы</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              {
-                q: 'Можно ли с детьми?',
-                a: 'Да, у нас есть квесты для детей от 8 лет. Дети младше 14 лет должны быть в сопровождении взрослых.',
-              },
-              {
-                q: 'Нужна ли предварительная запись?',
-                a: 'Да, обязательна. Запись принимается минимум за 2 часа до начала игры.',
-              },
-              {
-                q: 'Какие способы оплаты?',
-                a: 'Принимаем наличные, карты, СБП, QR-коды и банковские переводы.',
-              },
-              {
-                q: 'Можно ли с животными?',
-                a: 'К сожалению, нет. Посещение с животными запрещено.',
-              },
-              {
-                q: 'Где вход?',
-                a: 'Вход находится на цокольном этаже. Ориентир — Кумыкский театр (104 м).',
-              },
-              {
-                q: 'Есть ли парковка?',
-                a: 'Да, бесплатная парковка доступна для наших гостей.',
-              },
-            ].map((item, index) => (
+            {content.booking.faq.map((item, index) => (
               <motion.div
                 key={index}
                 className="p-6 rounded-xl bg-[#111] border border-white/5"

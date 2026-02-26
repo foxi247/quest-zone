@@ -1,29 +1,17 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { MapPin, Phone, Clock, CreditCard, Car, Wifi, Calendar, Baby, Ban, AlertCircle } from 'lucide-react';
-
-const features = [
-  { icon: CreditCard, label: 'Оплата картой', available: true },
-  { icon: Car, label: 'Парковка (бесплатная)', available: true },
-  { icon: Wifi, label: 'Wi-Fi', available: true },
-  { icon: Calendar, label: 'Предварительная запись', available: true },
-  { icon: Baby, label: 'Детский санузел', available: true },
-  { icon: CreditCard, label: 'Подарочный сертификат', available: true },
-  { icon: Baby, label: 'Для детей', available: true },
-];
-
-const paymentMethods = [
-  'СБП',
-  'QR-код',
-  'Предоплата',
-  'Наличные',
-  'Банковский перевод',
-  'Карта',
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function Contacts() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const featureIcons = [CreditCard, Car, Wifi, Calendar, Baby, CreditCard, Baby, MapPin];
+  const features = content.siteSettings.features.map((label, index) => ({
+    icon: featureIcons[index % featureIcons.length],
+    label,
+  }));
 
   return (
     <section
@@ -71,14 +59,14 @@ export function Contacts() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">Адрес</h3>
-                  <p className="text-gray-300 mb-2">Махачкала, ул. Дахадаева, 4</p>
-                  <p className="text-sm text-gray-500 mb-4">Этаж: цокольный</p>
+                  <p className="text-gray-300 mb-2">{content.siteSettings.address}</p>
+                  <p className="text-sm text-gray-500 mb-4">Этаж: {content.siteSettings.floor}</p>
                   <div className="flex flex-wrap gap-2">
                     <span className="px-3 py-1 text-xs rounded-full bg-white/5 text-gray-400">
-                      Кумыкский театр — 104 м
+                      {content.siteSettings.landmarkPrimary}
                     </span>
                     <span className="px-3 py-1 text-xs rounded-full bg-white/5 text-gray-400">
-                      Такси от 80 ₽
+                      {content.siteSettings.landmarkSecondary}
                     </span>
                   </div>
                 </div>
@@ -94,8 +82,8 @@ export function Contacts() {
                   </div>
                   <h3 className="font-bold">Телефон</h3>
                 </div>
-                <a href="tel:+79898801694" className="text-xl text-white hover:text-cyan-400 transition-colors">
-                  +7 (989) 880-16-94
+                <a href={`tel:${content.siteSettings.phone}`} className="text-xl text-white hover:text-cyan-400 transition-colors">
+                  {content.siteSettings.phoneDisplay}
                 </a>
               </div>
 
@@ -106,8 +94,8 @@ export function Contacts() {
                   </div>
                   <h3 className="font-bold">Режим работы</h3>
                 </div>
-                <p className="text-gray-300">Ежедневно</p>
-                <p className="text-xl text-white">12:00 — 23:00</p>
+                <p className="text-gray-300">{content.siteSettings.workHoursLabel}</p>
+                <p className="text-xl text-white">{content.siteSettings.workHours}</p>
               </div>
             </div>
 
@@ -128,7 +116,7 @@ export function Contacts() {
             <div className="p-6 rounded-2xl bg-[#111] border border-white/5">
               <h3 className="font-bold mb-4">Способы оплаты</h3>
               <div className="flex flex-wrap gap-2">
-                {paymentMethods.map((method) => (
+                {content.siteSettings.paymentMethods.map((method) => (
                   <span
                     key={method}
                     className="px-3 py-1 text-sm rounded-full bg-white/5 text-gray-300"
@@ -172,7 +160,7 @@ export function Contacts() {
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#1a1a1a]">
                   {/* Yandex Map Embed */}
                   <iframe
-                    src="https://yandex.ru/map-widget/v1/?ll=47.5047%2C42.9823&z=16&pt=47.5047%2C42.9823%2Cpm2rdl"
+                    src={content.siteSettings.mapEmbedUrl}
                     width="100%"
                     height="100%"
                     frameBorder="0"
@@ -189,7 +177,7 @@ export function Contacts() {
                       </div>
                       <div>
                         <p className="font-semibold">Quest Zone</p>
-                        <p className="text-sm text-gray-400">ул. Дахадаева, 4</p>
+                        <p className="text-sm text-gray-400">{content.siteSettings.addressShort}</p>
                       </div>
                     </div>
                   </div>
@@ -199,7 +187,7 @@ export function Contacts() {
               {/* Quick Actions */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <motion.a
-                  href="https://yandex.ru/maps/org/quest_zone/..."
+                  href={content.siteSettings.yandexOrgUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-4 rounded-xl bg-[#111] border border-white/5 text-center hover:bg-white/5 transition-colors"
@@ -210,7 +198,7 @@ export function Contacts() {
                   <span className="text-sm">Построить маршрут</span>
                 </motion.a>
                 <motion.a
-                  href="tel:+79898801694"
+                  href={`tel:${content.siteSettings.phone}`}
                   className="p-4 rounded-xl bg-[#111] border border-white/5 text-center hover:bg-white/5 transition-colors"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

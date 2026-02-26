@@ -1,40 +1,13 @@
 import { useRef } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Moon, Clock, Sparkles, ArrowRight } from 'lucide-react';
-
-const nightGames = [
-  {
-    id: 1,
-    title: 'Пятница 13',
-    subtitle: 'Ночная игра',
-    price: 5000,
-    duration: '1 час',
-    description: 'Ночью страх многократно усиливается. Тишина, темнота, и Джейсон совсем рядом.',
-    image: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=800&q=80',
-  },
-  {
-    id: 2,
-    title: 'Корпус "С"',
-    subtitle: 'Ночная игра',
-    price: 5000,
-    duration: '1 час',
-    description: 'Психиатрическая больница после заката. Звуки становятся громче, тени — длиннее.',
-    image: 'https://images.unsplash.com/photo-1499364615650-ec38552f4f34?w=800&q=80',
-  },
-  {
-    id: 3,
-    title: 'Паразиты',
-    subtitle: 'Ночная игра',
-    price: 5000,
-    duration: '1 час',
-    description: 'Квартира 666 в ночи. Газовые вентили скрываются в темноте, как и другие тайны.',
-    image: 'https://images.unsplash.com/photo-1505506874110-6a7a69069a08?w=800&q=80',
-  },
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function NightGames() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const nightGames = content.quests.filter((quest) => quest.category === 'night');
   
   const { scrollYProgress } = useScroll({
     target: sectionRef,

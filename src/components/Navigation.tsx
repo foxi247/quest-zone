@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, Clock } from 'lucide-react';
-
-const navItems = [
-  { label: 'Главная', href: '#home' },
-  { label: 'Квесты', href: '#quests' },
-  { label: 'Ночные игры', href: '#night-games' },
-  { label: 'Отзывы', href: '#reviews' },
-  { label: 'Акции', href: '#offers' },
-  { label: 'Контакты', href: '#contacts' },
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function Navigation() {
+  const { content } = useContent();
+  const { siteSettings, navigation } = content;
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +18,7 @@ export function Navigation() {
     const checkTime = () => {
       const now = new Date();
       const hour = now.getHours();
-      setIsOpen(hour >= 12 && hour < 23);
+      setIsOpen(hour >= siteSettings.openHour && hour < siteSettings.closeHour);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -35,7 +29,7 @@ export function Navigation() {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(interval);
     };
-  }, []);
+  }, [siteSettings.closeHour, siteSettings.openHour]);
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -73,10 +67,10 @@ export function Navigation() {
               <div className="hidden sm:block">
                 <span className="text-xl font-bold tracking-wider">QUEST ZONE</span>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span>Махачкала</span>
+                  <span>{siteSettings.city}</span>
                   <span className="w-1 h-1 bg-gray-500 rounded-full" />
                   <span className={isOpen ? 'text-green-400' : 'text-red-400'}>
-                    {isOpen ? 'Открыто' : 'Закрыто до 12:00'}
+                    {isOpen ? siteSettings.openStatusText : siteSettings.closedStatusText}
                   </span>
                 </div>
               </div>
@@ -84,7 +78,7 @@ export function Navigation() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-8">
-              {navItems.map((item) => (
+              {navigation.items.map((item) => (
                 <motion.a
                   key={item.href}
                   href={item.href}
@@ -105,12 +99,12 @@ export function Navigation() {
             <div className="flex items-center gap-4">
               {/* Phone */}
               <motion.a
-                href="tel:+79898801694"
+                href={`tel:${siteSettings.phone}`}
                 className="hidden md:flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
                 whileHover={{ scale: 1.05 }}
               >
                 <Phone className="w-4 h-4" />
-                <span>+7 (989) 880-16-94</span>
+                <span>{siteSettings.phoneDisplay}</span>
               </motion.a>
 
               {/* CTA Button */}
@@ -160,7 +154,7 @@ export function Navigation() {
               transition={{ delay: 0.1 }}
             >
               <div className="flex flex-col gap-4">
-                {navItems.map((item, index) => (
+                {navigation.items.map((item, index) => (
                   <motion.a
                     key={item.href}
                     href={item.href}
@@ -183,15 +177,17 @@ export function Navigation() {
                   transition={{ delay: 0.4 }}
                 >
                   <a
-                    href="tel:+79898801694"
+                    href={`tel:${siteSettings.phone}`}
                     className="flex items-center gap-3 text-lg text-gray-300"
                   >
                     <Phone className="w-5 h-5" />
-                    +7 (989) 880-16-94
+                    {siteSettings.phoneDisplay}
                   </a>
                   <div className="flex items-center gap-3 text-gray-400">
                     <Clock className="w-5 h-5" />
-                    <span>Ежедневно 12:00 — 23:00</span>
+                    <span>
+                      {siteSettings.workHoursLabel} {siteSettings.workHours}
+                    </span>
                   </div>
                 </motion.div>
               </div>

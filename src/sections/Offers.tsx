@@ -1,40 +1,17 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Gift, Cake, Users, Percent, ArrowRight, Check } from 'lucide-react';
-
-const offers = [
-  {
-    id: 1,
-    icon: Gift,
-    title: 'Подарочный сертификат',
-    description: 'Идеальный подарок для любителей острых ощущений. Сертификат на любую сумму или конкретный квест.',
-    price: 'от 2 000 ₽',
-    features: ['Срок действия — 6 месяцев', 'Можно использовать на любой квест', 'Именной сертификат'],
-    popular: false,
-  },
-  {
-    id: 2,
-    icon: Cake,
-    title: 'День рождения в Quest Zone',
-    description: 'Отпразднуйте день рождения незабываемо! Специальные условия для именинников.',
-    price: 'от 3 500 ₽',
-    features: ['Скидка 10% имениннику', 'Фото на память', 'Поздравление от актёров', 'Чай/кофе для компании'],
-    popular: true,
-  },
-  {
-    id: 3,
-    icon: Users,
-    title: 'Корпоративный квест',
-    description: 'Командообразование через страх. Идеально для сплочения коллектива.',
-    price: 'от 15 000 ₽',
-    features: ['До 20 участников', 'Несколько квестов параллельно', 'Фото/видео отчёт', 'Переговорная для дебрифинга'],
-    popular: false,
-  },
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function Offers() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const iconMap = {
+    gift: Gift,
+    cake: Cake,
+    users: Users,
+  } as const;
 
   const scrollToBooking = () => {
     const element = document.querySelector('#booking');
@@ -79,7 +56,9 @@ export function Offers() {
 
         {/* Offers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {offers.map((offer, index) => (
+          {content.offers.map((offer, index) => {
+            const Icon = iconMap[offer.iconKey];
+            return (
             <motion.div
               key={offer.id}
               className={`relative p-8 rounded-2xl border ${
@@ -104,7 +83,7 @@ export function Offers() {
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${
                 offer.popular ? 'bg-purple-500/20' : 'bg-white/5'
               }`}>
-                <offer.icon className={`w-7 h-7 ${offer.popular ? 'text-purple-400' : 'text-gray-400'}`} />
+                <Icon className={`w-7 h-7 ${offer.popular ? 'text-purple-400' : 'text-gray-400'}`} />
               </div>
 
               {/* Content */}
@@ -141,7 +120,7 @@ export function Offers() {
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
             </motion.div>
-          ))}
+          )})}
         </div>
 
         {/* Additional Info */}

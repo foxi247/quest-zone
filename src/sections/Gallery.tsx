@@ -1,50 +1,27 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
-
-const galleryImages = [
-  {
-    id: 1,
-    src: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200&q=80',
-    alt: 'Интерьер квеста Пятница 13',
-    category: 'Интерьер',
-  },
-  {
-    id: 2,
-    src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80',
-    alt: 'Коридор психиатрической больницы',
-    category: 'Корпус С',
-  },
-  {
-    id: 3,
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80',
-    alt: 'Заброшенная квартира',
-    category: 'Паразиты',
-  },
-  {
-    id: 4,
-    src: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=1200&q=80',
-    alt: 'Атмосфера ночной игры',
-    category: 'Ночные игры',
-  },
-  {
-    id: 5,
-    src: 'https://images.unsplash.com/photo-1499364615650-ec38552f4f34?w=1200&q=80',
-    alt: 'Детали реквизита',
-    category: 'Реквизит',
-  },
-  {
-    id: 6,
-    src: 'https://images.unsplash.com/photo-1505506874110-6a7a69069a08?w=1200&q=80',
-    alt: 'Комната загадок',
-    category: 'Интерьер',
-  },
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function Gallery() {
+  const { content } = useContent();
+  const galleryImages = content.gallery.map((item) => ({
+    id: item.id,
+    src: item.url,
+    alt: item.alt,
+    category: item.category,
+  }));
+  const { siteSettings } = content;
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (selectedImage === null) return;
+    if (galleryImages.length === 0 || selectedImage >= galleryImages.length) {
+      closeLightbox();
+    }
+  }, [galleryImages.length, selectedImage]);
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -57,13 +34,13 @@ export function Gallery() {
   };
 
   const nextImage = () => {
-    if (selectedImage !== null) {
+    if (selectedImage !== null && galleryImages.length > 0) {
       setSelectedImage((selectedImage + 1) % galleryImages.length);
     }
   };
 
   const prevImage = () => {
-    if (selectedImage !== null) {
+    if (selectedImage !== null && galleryImages.length > 0) {
       setSelectedImage((selectedImage - 1 + galleryImages.length) % galleryImages.length);
     }
   };
@@ -89,7 +66,7 @@ export function Gallery() {
               transition={{ delay: 0.2 }}
             >
               <Camera className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm text-gray-300">38 фото</span>
+              <span className="text-sm text-gray-300">{siteSettings.galleryCountLabel}</span>
             </motion.div>
             
             <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6">

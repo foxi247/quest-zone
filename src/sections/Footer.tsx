@@ -1,28 +1,12 @@
 import { motion } from 'framer-motion';
 import { Phone, MapPin, Instagram, MessageCircle, Mail } from 'lucide-react';
-
-const footerLinks = [
-  {
-    title: 'Квесты',
-    links: [
-      { label: 'Пятница 13', href: '#quests' },
-      { label: 'Корпус "С"', href: '#quests' },
-      { label: 'Паразиты', href: '#quests' },
-      { label: 'Ночные игры', href: '#night-games' },
-    ],
-  },
-  {
-    title: 'Информация',
-    links: [
-      { label: 'Правила', href: '#' },
-      { label: 'FAQ', href: '#booking' },
-      { label: 'Подарочные сертификаты', href: '#offers' },
-      { label: 'Корпоративы', href: '#offers' },
-    ],
-  },
-];
+import { useContent } from '@/content/ContentProvider';
 
 export function Footer() {
+  const { content } = useContent();
+  const floorLabel = content.siteSettings.floor.toLowerCase().includes('этаж')
+    ? content.siteSettings.floor
+    : `${content.siteSettings.floor.charAt(0).toUpperCase()}${content.siteSettings.floor.slice(1)} этаж`;
   const scrollToSection = (href: string) => {
     if (href === '#') return;
     const element = document.querySelector(href);
@@ -62,7 +46,7 @@ export function Footer() {
                 <Instagram className="w-5 h-5" />
               </motion.a>
               <motion.a
-                href="https://wa.me/79898801694"
+                href={`https://wa.me/${content.siteSettings.whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
@@ -72,7 +56,7 @@ export function Footer() {
                 <MessageCircle className="w-5 h-5" />
               </motion.a>
               <motion.a
-                href="mailto:info@questzone.ru"
+                href={`mailto:${content.siteSettings.email}`}
                 className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
@@ -83,7 +67,7 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          {footerLinks.map((group) => (
+          {content.footer.linkGroups.map((group) => (
             <div key={group.title}>
               <h4 className="font-semibold mb-4 text-white">{group.title}</h4>
               <ul className="space-y-3">
@@ -111,19 +95,19 @@ export function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="tel:+79898801694"
+                  href={`tel:${content.siteSettings.phone}`}
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors"
                 >
                   <Phone className="w-4 h-4" />
-                  <span className="text-sm">+7 (989) 880-16-94</span>
+                  <span className="text-sm">{content.siteSettings.phoneDisplay}</span>
                 </a>
               </li>
               <li className="flex items-start gap-3 text-gray-400">
                 <MapPin className="w-4 h-4 mt-0.5" />
                 <span className="text-sm">
-                  Махачкала, ул. Дахадаева, 4
+                  {content.siteSettings.address}
                   <br />
-                  <span className="text-gray-500">Цокольный этаж</span>
+                  <span className="text-gray-500">{floorLabel}</span>
                 </span>
               </li>
             </ul>

@@ -1,60 +1,10 @@
 import { useRef } from 'react';
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Clock, Users, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useContent } from '@/content/ContentProvider';
+import type { QuestItem } from '@/content/fallbackContent';
 
-interface Quest {
-  id: number;
-  title: string;
-  subtitle: string;
-  price: number;
-  duration: string;
-  players: string;
-  difficulty: number;
-  description: string;
-  image: string;
-  tags: string[];
-}
-
-const quests: Quest[] = [
-  {
-    id: 1,
-    title: 'Пятница 13',
-    subtitle: 'Логово маньяка',
-    price: 4000,
-    duration: '1 час',
-    players: '2-6 чел',
-    difficulty: 4,
-    description: 'Вы в логове маньяка Джейсона Вурхиза. Нужно добраться до последней комнаты и спасти жертву. Времени мало — он уже идёт за вами.',
-    image: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800&q=80',
-    tags: ['С актёром', 'По фильму', '18+'],
-  },
-  {
-    id: 2,
-    title: 'Корпус "С"',
-    subtitle: 'Психиатрическая больница',
-    price: 4000,
-    duration: '1 час',
-    players: '2-6 чел',
-    difficulty: 5,
-    description: 'Команда репортёров под видом пациентов. Цель — найти доказательства жестоких экспериментов. Но всё сложнее, чем кажется.',
-    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
-    tags: ['С актёром', 'Психологический', '16+'],
-  },
-  {
-    id: 3,
-    title: 'Паразиты',
-    subtitle: 'Квартира 666',
-    price: 4000,
-    duration: '1 час',
-    players: '2-5 чел',
-    difficulty: 3,
-    description: 'Заброшенная квартира. Алекс и дочь Мия. Нужно найти 3 газовых вентиля и установить правильно, чтобы прекратить страдания.',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-    tags: ['Для новичков', 'Загадки', '14+'],
-  },
-];
-
-function QuestCard({ quest, index }: { quest: Quest; index: number }) {
+function QuestCard({ quest, index }: { quest: QuestItem; index: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: '-100px' });
   
@@ -194,8 +144,11 @@ function QuestCard({ quest, index }: { quest: Quest; index: number }) {
 }
 
 export function Quests() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const regularQuests = content.quests.filter((quest) => quest.category === 'regular');
+  const advancedQuests = content.quests.filter((quest) => quest.category === 'advanced');
 
   return (
     <section
@@ -233,7 +186,7 @@ export function Quests() {
 
         {/* Quest Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {quests.map((quest, index) => (
+          {regularQuests.map((quest, index) => (
             <QuestCard key={quest.id} quest={quest} index={index} />
           ))}
         </div>
@@ -253,13 +206,11 @@ export function Quests() {
               больше загадок, глубже сюжет.
             </p>
             <div className="space-y-3">
-              {[
-                { name: 'Пятница 13 — 1ч 30м', price: 6000 },
-                { name: 'Корпус "С" — 1ч 30м', price: 6000 },
-                { name: 'Паразиты — 1ч 30м', price: 6000 },
-              ].map((item) => (
-                <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5">
-                  <span className="text-gray-300">{item.name}</span>
+              {advancedQuests.map((item) => (
+                <div key={item.id} className="flex items-center justify-between py-2 border-b border-white/5">
+                  <span className="text-gray-300">
+                    {item.title} — {item.duration}
+                  </span>
                   <span className="font-semibold">{item.price.toLocaleString()} ₽</span>
                 </div>
               ))}

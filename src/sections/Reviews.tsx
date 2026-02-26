@@ -1,61 +1,10 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Star, Quote, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { useContent } from '@/content/ContentProvider';
+import type { ReviewItem } from '@/content/fallbackContent';
 
-interface Review {
-  id: number;
-  name: string;
-  date: string;
-  rating: number;
-  text: string;
-  quest: string;
-  hasReply?: boolean;
-  reply?: {
-    text: string;
-    date: string;
-  };
-}
-
-const highlightedReviews: Review[] = [
-  {
-    id: 1,
-    name: 'Магомед Магомедов',
-    date: '15 сентября 2025',
-    rating: 5,
-    text: 'Выбрали "Пятница 13", взрослые и дети 13/12/8 — очень атмосферно, полное погружение, время пролетело, хотят вернуться на сложнее.',
-    quest: 'Пятница 13',
-  },
-  {
-    id: 2,
-    name: 'Гамид Г.',
-    date: '12 мая 2025',
-    rating: 5,
-    text: 'Квест с Джейсоном Вурхизом — "бомба", актёр на уровне, держали в сюжете, попали на акцию +20 минут, но не успели спасти жертву.',
-    quest: 'Пятница 13',
-  },
-  {
-    id: 3,
-    name: 'Rustam D.',
-    date: '8 мая 2025',
-    rating: 5,
-    text: 'День рождения сына, дети в восторге, актёры поздравили, устроили праздник. Спасибо за внимание к детям!',
-    quest: 'Паразиты',
-    hasReply: true,
-    reply: {
-      text: 'Спасибо, важно чтобы юным гостям было безопасно, ждём снова!',
-      date: '24 мая 2025',
-    },
-  },
-];
-
-const otherReviews: Review[] = [
-  { id: 4, name: 'Анна К.', date: '3 мая 2025', rating: 5, text: 'Отличный квест, очень атмосферно!', quest: 'Корпус "С"' },
-  { id: 5, name: 'Иbrahim M.', date: '28 апреля 2025', rating: 4, text: 'Хорошо, но хотелось бы больше загадок', quest: 'Паразиты' },
-  { id: 6, name: 'Семья Петровых', date: '20 апреля 2025', rating: 5, text: 'Прошли все три квеста, каждый уникален', quest: 'Все квесты' },
-  { id: 7, name: 'Команда "Барс"', date: '15 апреля 2025', rating: 5, text: 'Корпоратив прошёл на ура!', quest: 'Пятница 13' },
-];
-
-function ReviewCard({ review, index }: { review: Review; index: number }) {
+function ReviewCard({ review, index }: { review: ReviewItem; index: number }) {
   return (
     <motion.div
       className="relative p-8 rounded-2xl bg-[#111] border border-white/5"
@@ -93,7 +42,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
       <p className="text-gray-300 leading-relaxed mb-4">{review.text}</p>
 
       {/* Reply */}
-      {review.hasReply && review.reply && (
+      {review.reply && (
         <div className="mt-4 pt-4 border-t border-white/5">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-4 h-4 text-cyan-400" />
@@ -108,15 +57,30 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
 }
 
 export function Reviews() {
+  const { content } = useContent();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
   const [activeIndex, setActiveIndex] = useState(0);
+  const pinnedReviews = content.reviews
+    .filter((review) => review.pinned)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const highlightedReviews =
+    pinnedReviews.length > 0
+      ? pinnedReviews.slice(0, 3)
+      : [...content.reviews].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 3);
+  const highlightedIds = new Set(highlightedReviews.map((review) => review.id));
+  const otherReviews = [...content.reviews]
+    .filter((review) => !highlightedIds.has(review.id))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const safeIndex = highlightedReviews.length > 0 ? activeIndex % highlightedReviews.length : 0;
 
   const nextReview = () => {
+    if (highlightedReviews.length === 0) return;
     setActiveIndex((prev) => (prev + 1) % highlightedReviews.length);
   };
 
   const prevReview = () => {
+    if (highlightedReviews.length === 0) return;
     setActiveIndex((prev) => (prev - 1 + highlightedReviews.length) % highlightedReviews.length);
   };
 
@@ -151,12 +115,14 @@ export function Reviews() {
           <div className="flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
               <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-              <span className="text-2xl font-bold">4.6</span>
+              <span className="text-2xl font-bold">{content.siteSettings.ratingValue}</span>
             </div>
             <span className="text-gray-500">•</span>
-            <span className="text-gray-400">101 оценка</span>
+            <span className="text-gray-400">
+              {content.siteSettings.ratingVotes} {content.siteSettings.ratingVotesLabel}
+            </span>
             <span className="text-gray-500">•</span>
-            <span className="text-gray-400">40 отзывов</span>
+            <span className="text-gray-400">{content.siteSettings.reviewsCount} отзывов</span>
           </div>
         </motion.div>
 
@@ -171,51 +137,53 @@ export function Reviews() {
             <Quote className="absolute top-8 right-8 w-16 h-16 text-white/5" />
             
             <AnimatePresence mode="wait">
-              <motion.div
-                key={activeIndex}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.5 }}
-                className="max-w-3xl"
-              >
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-xl font-bold">
-                    {highlightedReviews[activeIndex].name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">{highlightedReviews[activeIndex].name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <span>{highlightedReviews[activeIndex].date}</span>
-                      <span>•</span>
-                      <span>{highlightedReviews[activeIndex].quest}</span>
+              {highlightedReviews.length > 0 && (
+                <motion.div
+                  key={safeIndex}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.5 }}
+                  className="max-w-3xl"
+                >
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-xl font-bold">
+                      {highlightedReviews[safeIndex].name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">{highlightedReviews[safeIndex].name}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <span>{highlightedReviews[safeIndex].date}</span>
+                        <span>•</span>
+                        <span>{highlightedReviews[safeIndex].quest}</span>
+                      </div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${i < highlightedReviews[safeIndex].rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <div className="ml-auto flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-5 h-5 ${i < highlightedReviews[activeIndex].rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                <p className="text-xl md:text-2xl text-gray-200 leading-relaxed mb-8">
-                  "{highlightedReviews[activeIndex].text}"
-                </p>
 
-                {highlightedReviews[activeIndex].hasReply && highlightedReviews[activeIndex].reply && (
-                  <div className="p-6 rounded-xl bg-white/5 border-l-2 border-cyan-400">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MessageCircle className="w-4 h-4 text-cyan-400" />
-                      <span className="text-sm font-medium text-cyan-400">Ответ Quest Zone</span>
-                      <span className="text-xs text-gray-500">{highlightedReviews[activeIndex].reply?.date}</span>
+                  <p className="text-xl md:text-2xl text-gray-200 leading-relaxed mb-8">
+                    "{highlightedReviews[safeIndex].text}"
+                  </p>
+
+                  {highlightedReviews[safeIndex].reply && (
+                    <div className="p-6 rounded-xl bg-white/5 border-l-2 border-cyan-400">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageCircle className="w-4 h-4 text-cyan-400" />
+                        <span className="text-sm font-medium text-cyan-400">Ответ Quest Zone</span>
+                        <span className="text-xs text-gray-500">{highlightedReviews[safeIndex].reply?.date}</span>
+                      </div>
+                      <p className="text-gray-400">{highlightedReviews[safeIndex].reply?.text}</p>
                     </div>
-                    <p className="text-gray-400">{highlightedReviews[activeIndex].reply?.text}</p>
-                  </div>
-                )}
-              </motion.div>
+                  )}
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Navigation */}
@@ -226,7 +194,7 @@ export function Reviews() {
                     key={index}
                     onClick={() => setActiveIndex(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === activeIndex ? 'w-8 bg-cyan-400' : 'bg-white/20'
+                      index === safeIndex ? 'w-8 bg-cyan-400' : 'bg-white/20'
                     }`}
                   />
                 ))}
@@ -272,7 +240,7 @@ export function Reviews() {
         >
           <p className="text-gray-400 mb-4">Прошли квест? Поделитесь впечатлениями!</p>
           <a
-            href="https://yandex.ru/maps/org/quest_zone/..."
+            href={content.siteSettings.yandexOrgUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-secondary rounded-lg inline-flex items-center gap-2"

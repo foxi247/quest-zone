@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown, Play, Star } from 'lucide-react';
+import { useContent } from '@/content/ContentProvider';
 
 export function Hero() {
+  const { content } = useContent();
+  const { siteSettings } = content;
+  const floorLabel = siteSettings.floor.toLowerCase().includes('этаж')
+    ? siteSettings.floor
+    : `${siteSettings.floor.charAt(0).toUpperCase()}${siteSettings.floor.slice(1)} этаж`;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
   
@@ -111,9 +117,13 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-          <span className="text-sm text-gray-300">Рейтинг 4.6</span>
+          <span className="text-sm text-gray-300">
+            {siteSettings.ratingLabel} {siteSettings.ratingValue}
+          </span>
           <span className="w-1 h-1 bg-gray-500 rounded-full" />
-          <span className="text-sm text-gray-400">101 оценка</span>
+          <span className="text-sm text-gray-400">
+            {siteSettings.ratingVotes} {siteSettings.ratingVotesLabel}
+          </span>
         </motion.div>
 
         {/* Main Title */}
@@ -137,7 +147,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          Квесты с актёрами в Махачкале
+          {siteSettings.heroSubtitle}
         </motion.p>
 
         <motion.p
@@ -146,8 +156,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          Погрузитесь в мир кинематографического хоррора. 
-          Три уникальные локации. Максимальное напряжение.
+          {siteSettings.heroDescription}
         </motion.p>
 
         {/* CTA Buttons */}
@@ -164,15 +173,15 @@ export function Hero() {
             whileTap={{ scale: 0.98 }}
           >
             <Play className="w-4 h-4" />
-            Выбрать квест
+            {siteSettings.heroPrimaryCta}
           </motion.button>
           <motion.a
-            href="tel:+79898801694"
+            href={`tel:${siteSettings.phone}`}
             className="btn-secondary rounded-lg"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Позвонить
+            {siteSettings.heroSecondaryCta}
           </motion.a>
         </motion.div>
 
@@ -183,11 +192,11 @@ export function Hero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.9 }}
         >
-          <span>ул. Дахадаева, 4</span>
+          <span>{siteSettings.addressShort}</span>
           <span className="hidden sm:block w-1 h-1 bg-gray-600 rounded-full" />
-          <span>Цокольный этаж</span>
+          <span>{floorLabel}</span>
           <span className="hidden sm:block w-1 h-1 bg-gray-600 rounded-full" />
-          <span>Кумыкский театр — 104 м</span>
+          <span>{siteSettings.landmarkPrimary}</span>
         </motion.div>
       </motion.div>
 
